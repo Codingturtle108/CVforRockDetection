@@ -1,6 +1,6 @@
 # Dependencies
 import os
-import cv2
+# import cv2
 import tensorflow as tf
 import numpy as np
 import cv2 as cv
@@ -10,26 +10,26 @@ from pathlib import Path
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Conv2D, Dense, Flatten, Dropout, MaxPooling2D
+from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
 
 
 
 # Avoid error
-# gpus = tf.config.experimental.list_physical_devices('GPU')
-# for gpu in gpus:
-#     tf.config.experimental.set_memory_growth(gpu, True)
+gpus = tf.config.experimental.list_physical_devices('GPU')
+for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)
+
+# # Base code for the cnn
 
 
-# Base code for the cnn
-
-
-# img = cv2.imread(os.path.join('data', 'sandstone', '8c0a1e9b6ac682d2a8d2aee4eca2dd6a.jpg'))
-# plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
-# plt.show()
-# print(img.shape)
+# # img = cv2.imread(os.path.join('data', 'sandstone', '8c0a1e9b6ac682d2a8d2aee4eca2dd6a.jpg'))
+# # plt.imshow(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+# # plt.show()
+# # print(img.shape)
 
 
 
-# Remove dodgy images
+# # Remove dodgy images
 
 data_dir = "./Dataset"
 image_extensions = ["bmp", "gif", "jpeg", "png"]
@@ -48,7 +48,7 @@ def clean_data(data_dir: str):
 
 
 # Loading dataset
-data = tf.keras.utils.image_dataset_from_directory('Dataset', batch_size = 16)
+data = tf.keras.utils.image_dataset_from_directory('Dataset', batch_size = 32, label_mode = 'categorical')
 
 def batch_info():
     data_iterator = data.as_numpy_iterator()
@@ -56,10 +56,10 @@ def batch_info():
     return f'(Batch Size, (Image Size), Channel Size) -> {batch[0].shape}'
 
 
-# fig, ax = plt.subplots(ncols=4, figsize=(10, 10))
-# for idx, img in enumerate(batch[0][:4]):
-#     ax[idx].imshow(img.astype(int))
-#     ax[idx].title.set_text(batch[1][idx])
+class_names = data.class_names
+
+# Print the class names
+print("Class Names:", class_names)
 
 # Scale Data 
 def scale_data(data):
@@ -99,7 +99,7 @@ model.add(Dense(256, activation='relu'))
 model.add(Dense(7, activation='softmax'))
 
 # compile the model
-model.compile('adam', loss=tf.losses.BinaryCrossentropy(), metrics=['accuracy'])
+model.compile('adam', loss=tf.losses.CategoricalCrossentropy(), metrics=['accuracy'])
 
 # Training model
 
@@ -109,9 +109,36 @@ tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
 
 #hist = model.fit(train, epochs=20, validation_data=val, callbacks=[tensorboard_callback])
 
+# Evaluate
+
+# pre = Precision()
+# recall = Recall()
+# cat_acc = CategoricalAccuracy()
+
+# for batch in test.as_numpy_iterator():
+#     X, y = batch
+#     yhat = model.predict(X)
+#     pre.update_state(y, yhat)
+#     recall.update_state(y ,yhat)
+#     cat_acc.update_state(y, yhat)
+# print(f'Precision{pre.result()}, Recall {recall.result()}, Accuracy {cat_acc.result()}')
 
 
 
+# Testing data
+
+img = cv.imread('coalimage.jpeg')
+plt.imshow(img)
+
+resize = tf.image.resize(img, (256, 256))
+plt.imshow(resize.numpy().astype(int))
+plt.show()
+
+#Prediction
+
+yhat = model.predict(np.expand_dims(resize / 255, 0))
+one_hot_predictions = np.eye(yhat.shape[1])[np.argmax(yhat, axis=1)]
+print(one_hot_predictions)
 
 
 
