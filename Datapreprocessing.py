@@ -42,6 +42,9 @@ def augement_data(img):
     cv.waitKey(0)
     cv.imshow('img4',img4)
     cv.waitKey(0)
+    edges = cv.Canny(img,5,10)
+    cv.imshow('Edges',edges)
+    cv.waitKey(0)
 input = cv.imread('opencv/sandstone.jpeg')
 augement_data(input)
 
