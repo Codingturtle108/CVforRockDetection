@@ -5,7 +5,7 @@ Capture = cv.VideoCapture(0)
 while True:
     read,frame = Capture.read()
     if not read:
-        print(f'Image Feed Not Read')
+        print("Image Feed Not Read")
         continue
     edges = cv.Canny(frame,50,100)
     cv.imshow('Video',edges)
